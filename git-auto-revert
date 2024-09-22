@@ -1,0 +1,53 @@
+#!/bin/bash
+# reverts all the commits matching the given criteria
+
+print_usage() {
+  echo "usage: git auto-revert <tag> [<options>]
+   or: git auto-revert --grep=<pattern> [<options>]
+
+    -s, --single-commit   revert commits within a single commit
+    -m, --message         commit message for single revert commit. ignored if not reverting in a single commit
+    --grep=<pattern>      limit the commits to be reverted to ones with a log message that match the specified pattern. required if <tag> is not specified
+    -b, --branch=<branch> branch to add the revert commits into. required if <tag> is not specified
+    --author=<pattern>    author to filter commits to revert. set to \"me\" to revert only the commits authored by the current user
+    --committer=<pattern> committer to filter commits to revert. set to \"me\" to revert only the commits comitted by the current user
+    --since=<date>, --after=<date>
+                          limit commits to be reverted to the ones that are more recent than a specific date
+    --until=<date>, --before=<date>       
+                          limit commits to be reverted to the ones that are older than a specific date
+    --since-commit=<commit>, --after-commit=<commit>
+                          limit commits to be reverted to the ones that are more recent than the specified commit
+    --until-commit=<commit>, --before-commit=<commit>
+                          limit commits to be reverted to the ones that are older than the specified commit
+    --since-tag=<tag>, --after-tag=<tag>
+                          limit commits to be reverted to the ones that are more recent than the specified tag
+    --until-tag=<tag>, --before-tag=<tag>
+                          limit commits to be reverted to the ones that are older than the specified tag
+    --no-abort-on-failure don't abort the revert on failure
+    --conventional        consider commit message tag specified as <tag> as a conventional commit message tag pattern
+
+Options related to limiting patterns (ignored if no pattern is specified with --grep=<pattern>)
+    --all-match           limit the commits to be reverted to ones that match all given --grep, instead of ones that match at least one
+    --invert-grep         limit the commits to be reverted to ones with a log message that do not match the pattern specified with --grep=<pattern>
+    -i, --regexp-ignore-case 
+                          match the regular expression limiting patterns without regard to letter case
+    --basic-regexp        consider the limiting patterns to be basic regular expressions; this is the default
+    -E, --extended-regexp consider the limiting patterns to be extended regular expressions instead of the default basic regular expressions
+    -F, --fixed-strings   consider the limiting patterns to be fixed strings (don't interpret pattern as a regular expression)
+    -P, --perl-regex      consider the limiting patterns to be Perl-compatible regular expressions
+"
+}
+
+# Conventional commit message tag expression examples
+#     feat                  type=feat, scope=none or any, breaking=yes or no
+#     feat(api)             type=feat, scope=api, breaking=yes or no
+#     feat(api)!            type=feat, scope=api, breaking=yes
+#     feat(api)!!           type=feat, scope=api, breaking=no
+#     feat(*)               type=feat, scope=any, breaking=yes or no
+#     feat(!*)              type=feat, scope=none, breaking=yes or no
+#     !feat                 type=anything except feat, scope=none or any, breaking=yes or no
+#     feat(!api)            type=feat, scope=anything except api, breaking=yes or no
+#     feat(api|client)      type=feat scope=api or client, breaking=yes or no
+#     feat(!api|client)     type=feat scope=anything except api or client, breaking=yes or no
+
+print_usage
