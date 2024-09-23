@@ -1,5 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # reverts all the commits matching the given criteria
+
+__DIR__=$(realpath -e -- "$(dirname -- "${BASH_SOURCE[0]}")")
+
+. "$__DIR__/lib/core/error.bash"
+. "$__DIR__/lib/git/core.bash"
+. "$__DIR__/lib/util/get_options.bash"
 
 print_usage() {
   echo "usage: git auto-revert <tag> [<options>]
@@ -38,6 +44,119 @@ Options related to limiting patterns (ignored if no pattern is specified with --
 "
 }
 
+validate_options() {
+  if [ -n "$tag" ] && [ "${#grep[@]}" -gt 0 ]; then
+    error "<tag> cannot be used with --grep" $RET_ILLEGAL_OPTION
+  fi
+
+  if [ -z "$tag" ] && [ "${#grep[@]}" -eq 0 ]; then
+    error "either a <tag> or --grep must be specified" $RET_ILLEGAL_OPTION
+  fi
+
+  if [ -z "$tag" ] && [ -z "$branch" ]; then
+    error "--branch is required if <tag> is not specified" $RET_ILLEGAL_OPTION
+  fi
+
+  if [ -n "$since_commit" ] && [ -n "$since_tag" ]; then
+    error "--since-commit or --after-commit cannot be used with --since-tag or --after-tag" $RET_ILLEGAL_OPTION
+  fi
+
+  if [ -n "$until_commit" ] && [ -n "$until_tag" ]; then
+    error "--until-commit or --before-commit cannot be used with --until-tag or --before-tag" $RET_ILLEGAL_OPTION
+  fi
+}
+
+parse_options() {
+  grep=()
+
+  if [[ ! "$1" == -* ]]; then
+    OPTIND=2
+    tag="$1"
+  else
+    OPTIND=1
+  fi
+
+  local long_opts="single-commit,message:,grep:,branch:,author:,committer:,since:,after:,until:,before:,since-commit:"
+  long_opts+=",after-commit:,until-commit:,before-commit:,since-tag:,after-tag:,until-tag:,before-tag:"
+  long_opts+=",no-abort-on-failure,conventional,all-match,invert-grep,regexp-ignore-case,basic-regexp,extended-regexp,fixed-strings,perl-regexp"
+
+  while get_options "sm:b:iEFP" "$long_opts" opt "$@"; do
+    case "$opt" in
+    s | single-commit)
+      single_commit=true
+      ;;
+    m | message)
+      single_commit_message="$OPTARG"
+      ;;
+    grep)
+      grep+=("$OPTARG")
+      ;;
+    all-match)
+      all_match=true
+      ;;
+    invert-grep)
+      invert_grep=true
+      ;;
+    i | regexp-ignore-case)
+      regexp_ignore_case=true
+      ;;
+    basic-regexp)
+      basic_regexp=true
+      ;;
+    E | extended-regexp)
+      extended_regexp=true
+      ;;
+    b | branch)
+      branch="$OPTARG"
+      ;;
+    F | fixed-strings)
+      fixed_strings=true
+      ;;
+    P | perl-regexp)
+      perl_regex=true
+      ;;
+    author)
+      author="$OPTARG"
+      ;;
+    committer)
+      committer="$OPTARG"
+      ;;
+    since | after)
+      since="$OPTARG"
+      ;;
+    until | before)
+      until="$OPTARG"
+      ;;
+    since-commit | after-commit)
+      since_commit="$OPTARG"
+      ;;
+    until-commit | before-commit)
+      until_commit="$OPTARG"
+      ;;
+    since-tag | after-tag)
+      since_tag="$OPTARG"
+      ;;
+    until-tag | before-tag)
+      until_tag="$OPTARG"
+      ;;
+    no-abort-on-failure)
+      no_abort=true
+      ;;
+    conventional)
+      tag_conventional=true
+      ;;
+    :)
+      error_missing_opt_value "$OPTARG"
+      ;;
+    *)
+      error_unknown_opt "$OPTARG"
+      ;;
+    esac
+  done
+
+  validate_options
+}
+
 # Conventional commit message tag expression examples
 #     feat                  type=feat, scope=none or any, breaking=yes or no
 #     feat(api)             type=feat, scope=api, breaking=yes or no
@@ -50,4 +169,7 @@ Options related to limiting patterns (ignored if no pattern is specified with --
 #     feat(api|client)      type=feat scope=api or client, breaking=yes or no
 #     feat(!api|client)     type=feat scope=anything except api or client, breaking=yes or no
 
-print_usage
+check_git_command
+check_git_repository
+
+parse_options "$@"
