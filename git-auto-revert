@@ -1,11 +1,28 @@
 #!/usr/bin/env bash
 # reverts all the commits matching the given criteria
 
+# Conventional commit message tag expression examples
+#     feat                  type=feat, scope=none or any, breaking=yes or no
+#     feat(api)             type=feat, scope=api, breaking=yes or no
+#     feat(api)!            type=feat, scope=api, breaking=yes
+#     feat(api)!!           type=feat, scope=api, breaking=no
+#     feat(*)               type=feat, scope=any, breaking=yes or no
+#     feat(!*)              type=feat, scope=none, breaking=yes or no
+#     !feat                 type=anything except feat, scope=none or any, breaking=yes or no
+#     feat(!api)            type=feat, scope=anything except api, breaking=yes or no
+#     feat(api|client)      type=feat scope=api or client, breaking=yes or no
+#     feat(!api|client)     type=feat scope=anything except api or client, breaking=yes or no
+
 __DIR__=$(realpath -e -- "$(dirname -- "${BASH_SOURCE[0]}")")
 
 . "$__DIR__/lib/core/error.bash"
 . "$__DIR__/lib/git/core.bash"
 . "$__DIR__/lib/util/get_options.bash"
+
+check_prerequisites() {
+  check_git_command
+  check_git_repository
+}
 
 print_usage() {
   echo "usage: git auto-revert <tag> [<options>]
@@ -157,19 +174,5 @@ parse_options() {
   validate_options
 }
 
-# Conventional commit message tag expression examples
-#     feat                  type=feat, scope=none or any, breaking=yes or no
-#     feat(api)             type=feat, scope=api, breaking=yes or no
-#     feat(api)!            type=feat, scope=api, breaking=yes
-#     feat(api)!!           type=feat, scope=api, breaking=no
-#     feat(*)               type=feat, scope=any, breaking=yes or no
-#     feat(!*)              type=feat, scope=none, breaking=yes or no
-#     !feat                 type=anything except feat, scope=none or any, breaking=yes or no
-#     feat(!api)            type=feat, scope=anything except api, breaking=yes or no
-#     feat(api|client)      type=feat scope=api or client, breaking=yes or no
-#     feat(!api|client)     type=feat scope=anything except api or client, breaking=yes or no
-
-check_git_command
-check_git_repository
-
+check_prerequisites
 parse_options "$@"
