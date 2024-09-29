@@ -67,3 +67,10 @@ function get_options {
     parse_long_option "${optarr[@]}"
   fi
 }
+
+# resets variables used by get_options
+# usage: reset_options
+function reset_options() {
+  OPTIND=1
+  OPTARG=""
+}

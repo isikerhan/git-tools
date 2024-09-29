@@ -17,6 +17,9 @@ __DIR__=$(realpath -e -- "$(dirname -- "${BASH_SOURCE[0]}")")
 
 . "$__DIR__/lib/core/error.bash"
 . "$__DIR__/lib/git/core.bash"
+. "$__DIR__/lib/git/log.bash"
+. "$__DIR__/lib/git/revision.bash"
+. "$__DIR__/lib/git/tag.bash"
 . "$__DIR__/lib/util/get_options.bash"
 
 check_prerequisites() {
@@ -39,13 +42,13 @@ print_usage() {
     --until=<date>, --before=<date>       
                           limit commits to be reverted to the ones that are older than a specific date
     --since-commit=<commit>, --after-commit=<commit>
-                          limit commits to be reverted to the ones that are more recent than the specified commit
+                          limit commits to be reverted to the ones that are more recent than the specified commit (excluding specified commit)
     --until-commit=<commit>, --before-commit=<commit>
-                          limit commits to be reverted to the ones that are older than the specified commit
+                          limit commits to be reverted to the ones that are older than the specified commit (including specified commit)
     --since-tag=<tag>, --after-tag=<tag>
-                          limit commits to be reverted to the ones that are more recent than the specified tag
+                          limit commits to be reverted to the ones that are more recent than the specified Git tag (excluding the commit specified tag points to)
     --until-tag=<tag>, --before-tag=<tag>
-                          limit commits to be reverted to the ones that are older than the specified tag
+                          limit commits to be reverted to the ones that are older than the specified Git tag (including the commit specified tag points to)
     --no-abort-on-failure don't abort the revert on failure
     --conventional        consider commit message tag specified as <tag> as a conventional commit message tag pattern
 
@@ -93,12 +96,16 @@ parse_options() {
     OPTIND=1
   fi
 
-  local long_opts="single-commit,message:,grep:,branch:,author:,committer:,since:,after:,until:,before:,since-commit:"
+  local long_opts="help,single-commit,message:,grep:,branch:,author:,committer:,since:,after:,until:,before:,since-commit:"
   long_opts+=",after-commit:,until-commit:,before-commit:,since-tag:,after-tag:,until-tag:,before-tag:"
   long_opts+=",no-abort-on-failure,conventional,all-match,invert-grep,regexp-ignore-case,basic-regexp,extended-regexp,fixed-strings,perl-regexp"
 
-  while get_options "sm:b:iEFP" "$long_opts" opt "$@"; do
+  while get_options "hsm:b:iEFP" "$long_opts" opt "$@"; do
     case "$opt" in
+    h | help)
+      print_usage
+      exit 0
+      ;;
     s | single-commit)
       single_commit=true
       ;;
@@ -130,7 +137,7 @@ parse_options() {
       fixed_strings=true
       ;;
     P | perl-regexp)
-      perl_regex=true
+      perl_regexp=true
       ;;
     author)
       author="$OPTARG"
@@ -174,5 +181,93 @@ parse_options() {
   validate_options
 }
 
+find_commits() {
+  if [[ -n "$since_commit" ]]; then
+    check_revision "$since_commit" || error "unknown revision: $since_commit"
+    local rev_start="$since_commit"
+  elif [[ -n "$since_tag" ]]; then
+    check_revision "$since_tag" || error "unknown revision: $since_tag"
+    check_tag "$since_tag" || error "not a tag: $since_tag"
+    local rev_start="$(resolve_revision "$since_tag")"
+  fi
+
+  if [[ -n "$until_commit" ]]; then
+    check_revision "$until_commit" || error "unknown revision: $until_commit"
+    local rev_end="$until_commit"
+  elif [[ -n "$until_tag" ]]; then
+    check_revision "$until_tag" || error "unknown revision: $until_tag"
+    check_tag "$since_tag" || error "not a tag: $until_tag"
+    local rev_end="$(resolve_revision "$until_tag")"
+  fi
+
+  if [[ -n "$rev_start" ]] || [[ -n "$rev_end" ]]; then
+    if [[ -z "$rev_start" ]]; then
+      local rev_start="$(find_initial_commit)"
+    fi
+
+    local revision_range="$rev_start..$rev_end"
+  fi
+
+  local find_commits_opts=()
+
+  if [[ ${#grep[@]} -gt 0 ]]; then
+    for grep_val in "${grep[@]}"; do
+      find_commits_opts+=(--grep "$grep_val")
+    done
+
+    if [[ -n "$all_match" ]]; then
+      find_commits_opts+=(--all-match)
+    fi
+
+    if [[ -n "$invert_grep" ]]; then
+      find_commits_opts+=(--invert-grep)
+    fi
+
+    if [[ -n "$regexp_ignore_case" ]]; then
+      find_commits_opts+=(--regexp-ignore-case)
+    fi
+
+    if [[ -n "$basic_regexp" ]]; then
+      find_commits_opts+=(--basic-regexp)
+    fi
+
+    if [[ -n "$extended_regexp" ]]; then
+      find_commits_opts+=(--extended-regexp)
+    fi
+
+    if [[ -n "$fixed_strings" ]]; then
+      find_commits_opts+=(--fixed-strings)
+    fi
+
+    if [[ -n "$perl_regexp" ]]; then
+      find_commits_opts+=(--perl-regexp)
+    fi
+  fi
+
+  if [[ -n "$author" ]]; then
+    find_commits_opts+=(--author "$author")
+  fi
+
+  if [[ -n "$committer" ]]; then
+    find_commits_opts+=(--committer "$committer")
+  fi
+
+  if [[ -n "$since" ]]; then
+    find_commits_opts+=(--since "$since")
+  fi
+
+  if [[ -n "$until" ]]; then
+    find_commits_opts+=(--until "$until")
+  fi
+
+  if [[ -z "$tag" ]]; then
+    commit_hashes=$(list_commits "$revision_range" "${find_commits_opts[@]}")
+  else
+    commit_hashes=$(list_commits_by_tag "$tag" "$revision_range" "${find_commits_opts[@]}")
+  fi
+}
+
 check_prerequisites
 parse_options "$@"
+
+find_commits
