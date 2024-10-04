@@ -14,7 +14,7 @@ readonly SEVERITY_FATAL="fatal"
 
 # report a failure and exit
 # usage: fail severity message exit_code
-# *intended for internal usage withing this file
+# *intended for internal usage within this file
 function fail() {
   local level="$1"
   local message="$2"
@@ -48,7 +48,7 @@ function fatal() {
 
 # get option type name: "option" or "switch"
 # usage: get_option_type_name opt_name
-# *intended for internal usage withing this file
+# *intended for internal usage within this file
 function get_option_type_name() {
   local opt="$1"
 
