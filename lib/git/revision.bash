@@ -2,7 +2,7 @@ if [ -n "$__LIB_GIT_REVISION__" ]; then
   return
 fi
 readonly __LIB_GIT_REVISION__=true
-readonly __DIR_LIB_GIT_REVISION__=$(realpath -e -- "$(dirname -- "${BASH_SOURCE[0]}")")
+readonly __DIR_LIB_GIT_REVISION__=$(dirname -- "${BASH_SOURCE[0]}")
 
 # echoes the commit hash of the speficied revision
 # usage: resolve_revision <revision>

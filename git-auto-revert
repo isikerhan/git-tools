@@ -13,7 +13,7 @@
 #     feat(api|client)      type=feat scope=api or client, breaking=yes or no
 #     feat(!api|client)     type=feat scope=anything except api or client, breaking=yes or no
 
-__DIR__=$(realpath -e -- "$(dirname -- "${BASH_SOURCE[0]}")")
+__DIR__=$(dirname -- "${BASH_SOURCE[0]}")
 
 . "$__DIR__/lib/core/error.bash"
 . "$__DIR__/lib/git/core.bash"

@@ -2,7 +2,7 @@ if [ -n "$__LIB_GIT_CORE__" ]; then
   return
 fi
 readonly __LIB_GIT_CORE__=true
-readonly __DIR_LIB_GIT_CORE__=$(realpath -e -- "$(dirname -- "${BASH_SOURCE[0]}")")
+readonly __DIR_LIB_GIT_CORE__=$(dirname -- "${BASH_SOURCE[0]}")
 
 . "$__DIR_LIB_GIT_CORE__/../core/error.bash"
 

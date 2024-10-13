@@ -2,7 +2,7 @@ if [ -n "$__LIB_GIT_LOG__" ]; then
   return
 fi
 readonly __LIB_GIT_LOG__=true
-readonly __DIR_LIB_GIT_LOG__=$(realpath -e -- "$(dirname -- "${BASH_SOURCE[0]}")")
+readonly __DIR_LIB_GIT_LOG__=$(dirname -- "${BASH_SOURCE[0]}")
 
 . "$__DIR_LIB_GIT_LOG__/core.bash"
 . "$__DIR_LIB_GIT_LOG__/../util/get_options.bash"
