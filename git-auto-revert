@@ -84,6 +84,10 @@ validate_options() {
   if [ -n "$until_commit" ] && [ -n "$until_tag" ]; then
     error "--until-commit or --before-commit cannot be used with --until-tag or --before-tag" $RET_ILLEGAL_OPTION
   fi
+
+  if [ -n "$single_commit" ] && [ -n "$tag_conventional" ] && [ -z "$single_commit_message" ]; then
+    error "--message is required when reverting in a single commit and the tag is a conventional commit message pattern" $RET_ILLEGAL_OPTION
+  fi
 }
 
 parse_options() {
