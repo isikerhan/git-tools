@@ -4,8 +4,8 @@ fi
 readonly __LIB_CORE_ERROR__=true
 
 # predefined error codes
+readonly RET_GENERIC_ERROR=128
 readonly RET_GIT_NOT_AVAILABLE=2
-readonly RET_NOT_A_GIT_REPOSITORY=128
 readonly RET_ILLEGAL_OPTION=129
 
 # error severity levels

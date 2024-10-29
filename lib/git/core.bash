@@ -17,7 +17,7 @@ check_git_command() {
 check_git_repository() {
   local inside_work_tree=$(git rev-parse --is-inside-work-tree 2>/dev/null)
   if [ ! "$inside_work_tree" == "true" ]; then
-    fatal "not a git repository (or any of the parent directories): .git" $RET_NOT_A_GIT_REPOSITORY
+    fatal "not a git repository (or any of the parent directories): .git" $RET_GENERIC_ERROR
   fi
 }
 
