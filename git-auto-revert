@@ -43,7 +43,6 @@ print_usage() {
     -s, --single-commit   revert commits within a single commit
     -m, --message         commit message for single revert commit. ignored if not reverting in a single commit
     --grep=<pattern>      limit the commits to be reverted to ones with a log message that match the specified pattern. required if <tag> is not specified
-    -b, --branch=<branch> branch to add the revert commits into. required if <tag> is not specified
     --author=<pattern>    author to filter commits to revert. set to \"me\" to revert only the commits authored by the current user
     --committer=<pattern> committer to filter commits to revert. set to \"me\" to revert only the commits comitted by the current user
     --since=<date>, --after=<date>
@@ -82,10 +81,6 @@ validate_options() {
     error "either a <tag> or --grep must be specified" $RET_ILLEGAL_OPTION
   fi
 
-  if [ -z "$tag" ] && [ -z "$branch" ]; then
-    error "--branch is required if <tag> is not specified" $RET_ILLEGAL_OPTION
-  fi
-
   if [ -n "$since_commit" ] && [ -n "$since_tag" ]; then
     error "--since-commit or --after-commit cannot be used with --since-tag or --after-tag" $RET_ILLEGAL_OPTION
   fi
@@ -109,11 +104,11 @@ parse_options() {
     OPTIND=1
   fi
 
-  local long_opts="help,single-commit,message:,grep:,branch:,author:,committer:,since:,after:,until:,before:,since-commit:"
+  local long_opts="help,single-commit,message:,grep:,author:,committer:,since:,after:,until:,before:,since-commit:"
   long_opts+=",after-commit:,until-commit:,before-commit:,since-tag:,after-tag:,until-tag:,before-tag:"
   long_opts+=",no-abort-on-failure,conventional,all-match,invert-grep,regexp-ignore-case,basic-regexp,extended-regexp,fixed-strings,perl-regexp"
 
-  while get_options "hsm:b:iEFP" "$long_opts" opt "$@"; do
+  while get_options "hsm:iEFP" "$long_opts" opt "$@"; do
     case "$opt" in
     h | help)
       print_usage
@@ -142,9 +137,6 @@ parse_options() {
       ;;
     E | extended-regexp)
       extended_regexp=true
-      ;;
-    b | branch)
-      branch="$OPTARG"
       ;;
     F | fixed-strings)
       fixed_strings=true
