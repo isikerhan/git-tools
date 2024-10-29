@@ -57,7 +57,6 @@ print_usage() {
                           limit commits to be reverted to the ones that are more recent than the specified Git tag (excluding the commit specified tag points to)
     --until-tag=<tag>, --before-tag=<tag>
                           limit commits to be reverted to the ones that are older than the specified Git tag (including the commit specified tag points to)
-    --no-abort-on-failure don't abort the revert on failure
     --conventional        consider commit message tag specified as <tag> as a conventional commit message tag pattern
 
 Options related to limiting patterns (ignored if no pattern is specified with --grep=<pattern>)
@@ -106,7 +105,7 @@ parse_options() {
 
   local long_opts="help,single-commit,message:,grep:,author:,committer:,since:,after:,until:,before:,since-commit:"
   long_opts+=",after-commit:,until-commit:,before-commit:,since-tag:,after-tag:,until-tag:,before-tag:"
-  long_opts+=",no-abort-on-failure,conventional,all-match,invert-grep,regexp-ignore-case,basic-regexp,extended-regexp,fixed-strings,perl-regexp"
+  long_opts+=",conventional,all-match,invert-grep,regexp-ignore-case,basic-regexp,extended-regexp,fixed-strings,perl-regexp"
 
   while get_options "hsm:iEFP" "$long_opts" opt "$@"; do
     case "$opt" in
@@ -167,9 +166,6 @@ parse_options() {
       ;;
     until-tag | before-tag)
       until_tag="$OPTARG"
-      ;;
-    no-abort-on-failure)
-      no_abort=true
       ;;
     conventional)
       tag_conventional=true
