@@ -277,9 +277,70 @@ find_commits() {
   fi
 
   if [[ -z "$tag" ]]; then
-    commit_hashes=$(list_commits "$revision_range" "${find_commits_opts[@]}")
+    commit_hashes=($(list_commits "$revision_range" "${find_commits_opts[@]}"))
   else
-    commit_hashes=$(list_commits_by_tag "$tag" "$revision_range" "${find_commits_opts[@]}")
+    commit_hashes=($(list_commits_by_tag "$tag" "$revision_range" "${find_commits_opts[@]}"))
+  fi
+}
+
+build_commit_message() {
+  local commit_message
+
+  if [ -n "$single_commit_message" ]; then
+    commit_message="$single_commit_message"
+  else
+    commit_message="Revert \"$tag\""
+  fi
+
+  commit_message+=$'\n\n'
+
+  for commit in "${commit_hashes[@]}"; do
+    commit_message+="This reverts commit $commit."$'\n'
+  done
+
+  printf "$commit_message"
+}
+
+commit() {
+  local message=$(build_commit_message)
+  local commit_opts=()
+
+  if [ "$edit" == "true" ]; then
+    commit_opts+=(--edit)
+  else
+    commit_opts+=(--no-edit)
+  fi
+
+  git commit -m "$message" ${commit_opts[@]}
+}
+
+revert() {
+  if [ -z "$commit_hashes" ]; then
+    error "no matching commits found. nothing to do" $RET_GENERIC_ERROR
+  fi
+
+  local revert_opts=()
+
+  if [ "$no_commit" == "true" ] || [ "$single_commit" == "true" ]; then
+    revert_opts+=(--no-commit)
+  fi
+
+  if [ "$edit" == "true" ]; then
+    revert_opts+=(--edit)
+  else
+    revert_opts+=(--no-edit)
+  fi
+
+  git revert ${revert_opts[@]} ${commit_hashes[@]}
+
+  local revert_result=$?
+
+  if [ $revert_result -eq 0 ]; then
+    if [ "$single_commit" == "true" ]; then
+      commit
+    fi
+
+    echo "Successfully reverted ${#commit_hashes[@]} commits"
   fi
 }
 
@@ -288,3 +349,4 @@ parse_options "$@"
 check_status
 
 find_commits
+revert
