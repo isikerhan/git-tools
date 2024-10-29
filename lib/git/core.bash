@@ -26,3 +26,26 @@ check_git_repository() {
 get_current_git_author() {
   echo "$(git config user.name) <$(git config user.email)>"
 }
+
+# check if current git repository has staged changes. returns 0 if so, non-zero otherwise
+# usage: has_staged_changes
+has_staged_changes() {
+  git diff --cached --exit-code >/dev/null 2>&1
+  local ret=$?
+  if [[ $ret -eq 0 ]]; then
+    return 128
+  else
+    return 0
+  fi
+}
+# check if current git repository has unstaged changes. returns 0 if so, non-zero otherwise
+# usage: has_unstaged_changes
+has_unstaged_changes() {
+  git diff --exit-code >/dev/null 2>&1
+  local ret=$?
+  if [[ $ret -eq 0 ]]; then
+    return 128
+  else
+    return 0
+  fi
+}

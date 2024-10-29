@@ -16,6 +16,7 @@
 __DIR__=$(dirname -- "${BASH_SOURCE[0]}")
 
 . "$__DIR__/lib/core/error.bash"
+. "$__DIR__/lib/core/log.bash"
 . "$__DIR__/lib/git/core.bash"
 . "$__DIR__/lib/git/log.bash"
 . "$__DIR__/lib/git/revision.bash"
@@ -25,6 +26,14 @@ __DIR__=$(dirname -- "${BASH_SOURCE[0]}")
 check_prerequisites() {
   check_git_command
   check_git_repository
+}
+
+check_status() {
+  if has_staged_changes || has_unstaged_changes; then
+    error "your local changes would be overwritten by auto-revert." 0
+    hint "commit your changes or stash them to proceed."
+    fatal "auto-revert failed" $RET_GENERIC_ERROR
+  fi
 }
 
 print_usage() {
@@ -273,5 +282,6 @@ find_commits() {
 
 check_prerequisites
 parse_options "$@"
+check_status
 
 find_commits
