@@ -25,7 +25,10 @@ function fail() {
   fi
 
   echo "$level: $message" >&2
-  exit "$exit_code"
+
+  if [ $exit_code -ne 0 ]; then
+    exit "$exit_code"
+  fi
 }
 
 # report an error and exit
