@@ -42,6 +42,8 @@ print_usage() {
 
     -s, --single-commit   revert commits within a single commit
     -m, --message         commit message for single revert commit. ignored if not reverting in a single commit
+    -n, --no-commit       don't automatically commit
+    -e, --[no-]edit       edit the commit message
     --grep=<pattern>      limit the commits to be reverted to ones with a log message that match the specified pattern. required if <tag> is not specified
     --author=<pattern>    author to filter commits to revert. set to \"me\" to revert only the commits authored by the current user
     --committer=<pattern> committer to filter commits to revert. set to \"me\" to revert only the commits comitted by the current user
@@ -91,6 +93,10 @@ validate_options() {
   if [ -n "$single_commit" ] && [ -n "$tag_conventional" ] && [ -z "$single_commit_message" ]; then
     error "--message is required when reverting in a single commit and the tag is a conventional commit message pattern" $RET_ILLEGAL_OPTION
   fi
+
+  if [ "$single_commit" == "true" ] && [ "$no_commit" == "true" ]; then
+    error "--single-commit cannot be used with --no-commit" $RET_ILLEGAL_OPTION
+  fi
 }
 
 parse_options() {
@@ -103,11 +109,11 @@ parse_options() {
     OPTIND=1
   fi
 
-  local long_opts="help,single-commit,message:,grep:,author:,committer:,since:,after:,until:,before:,since-commit:"
+  local long_opts="help,single-commit,message:,no-commit,edit,no-edit,grep:,author:,committer:,since:,after:,until:,before:,since-commit:"
   long_opts+=",after-commit:,until-commit:,before-commit:,since-tag:,after-tag:,until-tag:,before-tag:"
   long_opts+=",conventional,all-match,invert-grep,regexp-ignore-case,basic-regexp,extended-regexp,fixed-strings,perl-regexp"
 
-  while get_options "hsm:iEFP" "$long_opts" opt "$@"; do
+  while get_options "hsm:neiEFP" "$long_opts" opt "$@"; do
     case "$opt" in
     h | help)
       print_usage
@@ -118,6 +124,15 @@ parse_options() {
       ;;
     m | message)
       single_commit_message="$OPTARG"
+      ;;
+    n | no-commit)
+      no_commit=true
+      ;;
+    e | edit)
+      edit=true
+      ;;
+    no-edit)
+      edit=false
       ;;
     grep)
       grep+=("$OPTARG")
