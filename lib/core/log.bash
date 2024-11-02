@@ -11,7 +11,7 @@ readonly YELLOW="\033[0;33m"
 echo_colored() {
   local text="$1"
   local color="$2"
-  printf "$2$text$NO_COLOR"
+  printf "$2$text$NO_COLOR"$'\n'
 }
 
 # print hint
