@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# reverts all the commits matching the given criteria
+# Revert commits based on a set of filters
 
 # Conventional commit message tag expression examples
 #     feat                  type=feat, scope=none or any, breaking=yes or no
