@@ -17,6 +17,12 @@ check_prerequisites() {
 }
 
 check_status() {
+  if has_sequencer; then
+    error "a revert or a cherry-pick sequence in progress" 0
+    hint "complete or abort revert/cherry-pick sequence first to proceed."
+    fatal "auto-revert failed" $RET_GENERIC_ERROR
+  fi
+
   if has_staged_changes || has_unstaged_changes; then
     error "your local changes would be overwritten by auto-revert." 0
     hint "commit your changes or stash them to proceed."
