@@ -22,7 +22,7 @@ check_git_repository() {
 }
 
 # get current git author
-# usage: get_current_git_author 
+# usage: get_current_git_author
 get_current_git_author() {
   echo "$(git config user.name) <$(git config user.email)>"
 }
@@ -32,20 +32,12 @@ get_current_git_author() {
 has_staged_changes() {
   git diff --cached --exit-code >/dev/null 2>&1
   local ret=$?
-  if [[ $ret -eq 0 ]]; then
-    return 128
-  else
-    return 0
-  fi
+  ! [ $ret -eq 0 ]
 }
 # check if current git repository has unstaged changes. returns 0 if so, non-zero otherwise
 # usage: has_unstaged_changes
 has_unstaged_changes() {
   git diff --exit-code >/dev/null 2>&1
   local ret=$?
-  if [[ $ret -eq 0 ]]; then
-    return 128
-  else
-    return 0
-  fi
+  ! [ $ret -eq 0 ]
 }
