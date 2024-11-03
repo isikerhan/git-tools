@@ -198,19 +198,19 @@ parse_options() {
 
 find_commits() {
   if [[ -n "$since_commit" ]]; then
-    check_revision "$since_commit" || error "unknown revision: $since_commit"
+    revision_exists "$since_commit" || error "unknown revision: $since_commit"
     local rev_start="$since_commit"
   elif [[ -n "$since_tag" ]]; then
-    check_revision "$since_tag" || error "unknown revision: $since_tag"
+    revision_exists "$since_tag" || error "unknown revision: $since_tag"
     check_tag "$since_tag" || error "not a tag: $since_tag"
     local rev_start="$(resolve_revision "$since_tag")"
   fi
 
   if [[ -n "$until_commit" ]]; then
-    check_revision "$until_commit" || error "unknown revision: $until_commit"
+    revision_exists "$until_commit" || error "unknown revision: $until_commit"
     local rev_end="$until_commit"
   elif [[ -n "$until_tag" ]]; then
-    check_revision "$until_tag" || error "unknown revision: $until_tag"
+    revision_exists "$until_tag" || error "unknown revision: $until_tag"
     check_tag "$since_tag" || error "not a tag: $until_tag"
     local rev_end="$(resolve_revision "$until_tag")"
   fi

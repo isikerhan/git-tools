@@ -11,7 +11,7 @@ resolve_revision() {
 }
 
 # checks if revision exists, returns 0 if so, otherwise non-zero
-# usage: check_revision <revision>
-check_revision() {
+# usage: revision_exists <revision>
+revision_exists() {
   git show -s --pretty="%H" "$1" >/dev/null 2>&1
 }
