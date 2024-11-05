@@ -330,7 +330,7 @@ commit() {
     commit_opts+=(--no-edit)
   fi
 
-  git commit -m "$message" ${commit_opts[@]}
+  git commit -m "$message" "${commit_opts[@]}"
 }
 
 squash_commits() {
@@ -358,7 +358,7 @@ revert() {
     revert_opts+=(--no-edit)
   fi
 
-  git revert ${revert_opts[@]} ${commit_hashes[@]} >/dev/null
+  git revert "${revert_opts[@]}" ${commit_hashes[*]} >/dev/null
 
   local revert_result=$?
   skipped_commit_hashes=()
