@@ -96,7 +96,18 @@ validate_options() {
 
 parse_options() {
   grep=()
+  single_commit=false
+  no_commit=false
+  edit=false
   auto_skip_empty=true
+
+  all_match=false
+  invert_grep=false
+  regexp_ignore_case=false
+  basic_regexp=false
+  extended_regexp=false
+  fixed_strings=false
+  perl_regexp=false
 
   if [[ ! "$1" == -* ]]; then
     OPTIND=2
@@ -127,14 +138,14 @@ parse_options() {
     e | edit)
       edit=true
       ;;
+    no-edit)
+      edit=false
+      ;;
     auto-skip-empty)
       auto_skip_empty=true
       ;;
     no-auto-skip-empty)
       auto_skip_empty=false
-      ;;
-    no-edit)
-      edit=false
       ;;
     grep)
       grep+=("$OPTARG")
@@ -230,31 +241,31 @@ find_commits() {
       find_commits_opts+=(--grep "$grep_val")
     done
 
-    if [[ -n "$all_match" ]]; then
+    if [[ "$all_match" == "true" ]]; then
       find_commits_opts+=(--all-match)
     fi
 
-    if [[ -n "$invert_grep" ]]; then
+    if [[ "$invert_grep" == "true" ]]; then
       find_commits_opts+=(--invert-grep)
     fi
 
-    if [[ -n "$regexp_ignore_case" ]]; then
+    if [[ "$regexp_ignore_case" == "true" ]]; then
       find_commits_opts+=(--regexp-ignore-case)
     fi
 
-    if [[ -n "$basic_regexp" ]]; then
+    if [[ "$basic_regexp" == "true" ]]; then
       find_commits_opts+=(--basic-regexp)
     fi
 
-    if [[ -n "$extended_regexp" ]]; then
+    if [[ "$extended_regexp" == "true" ]]; then
       find_commits_opts+=(--extended-regexp)
     fi
 
-    if [[ -n "$fixed_strings" ]]; then
+    if [[ "$fixed_strings" == "true" ]]; then
       find_commits_opts+=(--fixed-strings)
     fi
 
-    if [[ -n "$perl_regexp" ]]; then
+    if [[ "$perl_regexp" == "true" ]]; then
       find_commits_opts+=(--perl-regexp)
     fi
   fi
@@ -393,7 +404,7 @@ revert() {
 
     if [ "$no_commit" == "true" ]; then
       local gitdir="$(get_git_dir)"
-      echo "$(build_commit_message)" > "$gitdir/MERGE_MSG"
+      echo "$(build_commit_message)" >"$gitdir/MERGE_MSG"
 
       hint "changes are not committed"
       hint "use \"git revert --continue\" or \"git commit\" to commit the changes"
