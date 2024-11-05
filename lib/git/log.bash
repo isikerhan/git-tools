@@ -29,13 +29,13 @@ list_commits() {
       if [[ "$OPTARG" == "me" ]]; then
         unset args[$OPTIND-2]
         unset args[$OPTIND-3]
-        args+=("--$opt $(get_current_git_author)")
+        args+=(--$opt "$(get_current_git_author)")
       fi
       ;;
     esac
   done
 
-  git log $revision_range ${args[@]} --format="%H"
+  git log $revision_range "${args[@]}" --format="%H"
 }
 
 # lists git commits by tag
