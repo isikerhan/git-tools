@@ -390,6 +390,14 @@ revert() {
       printf " (skipped ${#skipped_commit_hashes[@]})"
     fi
     echo ""
+
+    if [ "$no_commit" == "true" ]; then
+      local gitdir="$(get_git_dir)"
+      echo "$(build_commit_message)" > "$gitdir/MERGE_MSG"
+
+      hint "changes are not committed"
+      hint "use \"git revert --continue\" or \"git commit\" to commit the changes"
+    fi
   else
     error "unable to revert" 0
     if has_sequencer && (has_staged_changes || has_unstaged_changes); then
