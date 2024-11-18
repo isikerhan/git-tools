@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Reapply previously reverted commits based on a set of filters
+
+__DIR__=$(dirname -- "${BASH_SOURCE[0]}")
+
+. "$__DIR__/lib/base-commands/revert-reapply.bash"
+
+revert_reapply $ACTION_REAPPLY $@
