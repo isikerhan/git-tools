@@ -15,6 +15,8 @@ readonly __DIR_LIB_BASE_COMMANDS_REVERT_REAPPLY__=$(dirname -- "${BASH_SOURCE[0]
 readonly ACTION_AUTO_REVERT="AUTO_REVERT"
 readonly ACTION_REAPPLY="REAPPLY"
 
+readonly REAPPLY_HOOKS_PATH="$__DIR_LIB_BASE_COMMANDS_REVERT_REAPPLY__/../hooks/reapply"
+
 # check for the prerequisites for auto-revert/reapply
 # usage: check_prerequisites
 # *intended for internal usage within this file
@@ -477,6 +479,10 @@ do_revert_reapply() {
   local command_err
   local command_result
   local git_config=(-c "color.advice=always" -c "core.editor=$editor >$(tty)")
+
+  if [ "$revert_reapply_action" == "$ACTION_REAPPLY" ]; then
+    git_config+=(-c "core.hooksPath=$REAPPLY_HOOKS_PATH")
+  fi
 
   command_err="$(git "${git_config[@]}" $git_command_name "${command_opts[@]}" ${commit_hashes[*]} 2>&1 >/dev/null)"
   command_result=$?
