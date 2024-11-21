@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Squash latest commits into one
+
+print_usage() {
+  echo "usage: git squash <base-commit> [<options>]
+   or: git squash (-n | --number-of-commits) <number> [<options>]
+
+    -n, --number-of-commits <number>
+                          number of commits from HEAD to be squashed
+    -m, --message <message>
+                          commit message
+    -n, --no-commit       don't automatically commit
+    --commit              opposite of --no-commit
+    -e, --[no-]edit       edit the commit message
+    --allow-empty         allow creating an empty commit when the commits being squashed introduce no change over the base commit
+    --empty=(drop|keep|abort)
+                          how to handle commits being squashed that end up in an empty changeset
+             drop    the commits will be dropped
+             keep    an empty commit will be created. implies --allow-empty
+             abort   the squash operation will abort and the working directory will be reset to its state before the squash. this is the default behavior
+"
+}
