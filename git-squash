@@ -1,0 +1,346 @@
+#!/usr/bin/env bash
+# Squash latest commits into one
+
+__DIR__=$(dirname -- "${BASH_SOURCE[0]}")
+
+. "$__DIR__/lib/core/error.bash"
+. "$__DIR__/lib/core/log.bash"
+. "$__DIR__/lib/git/core.bash"
+. "$__DIR__/lib/git/log.bash"
+. "$__DIR__/lib/git/revision.bash"
+. "$__DIR__/lib/util/get_options.bash"
+
+readonly EMPTY_STRAT_DROP=drop
+readonly EMPTY_STRAT_KEEP=keep
+readonly EMPTY_STRAT_ABORT=abort
+
+abort_squash() {
+  local current_head="$(resolve_revision "HEAD")"
+
+  if [[ "$current_head" != "$original_head" ]]; then
+    git reset "$original_head" --hard >/dev/null
+    echo "squash aborted"
+  fi
+}
+
+clean_up() {
+  local ret=$?
+  if [[ $ret -ne 0 ]]; then
+    abort_squash
+  fi
+}
+
+trap clean_up EXIT
+
+check_prerequisites() {
+  check_git_command
+  check_git_repository
+}
+
+set_up() {
+  original_head="$(resolve_revision "HEAD")"
+}
+
+check_repository_status() {
+  check_ongoing_revert_or_cherry_pick "squash"
+  check_uncommitted_changes "squash"
+  check_ongoing_rebase "squash"
+}
+
+print_usage() {
+  echo "usage: git squash <base-commit> [<options>]
+   or: git squash (-n | --number-of-commits) <number> [<options>]
+   or: git squash --root [<options>]
+
+    -n, --number-of-commits <number>
+                          number of commits from HEAD to squash
+    -m, --message <message>
+                          commit message
+    --no-commit           don't automatically commit
+    --commit              opposite of --no-commit
+    -e, --[no-]edit       edit the commit message
+    --allow-empty         allow creating an empty commit when the commits being squashed introduce no change over the base commit
+    --empty=(drop|keep|abort)
+                          how to handle commits being squashed that end up in an empty changeset
+             drop    the commits will be dropped
+             keep    an empty commit will be created. implies --allow-empty
+             abort   the squash operation will abort and the working directory will be reset to its state before the squash. this is the default behavior
+    --root                squash all the commits reachable from HEAD
+    -v, --verbose         be verbose
+"
+}
+
+validate_options() {
+  local number_regex=^[0-9]+$
+  if [[ -n "$num_commits" ]] && ([[ ! $num_commits =~ $number_regex ]] || [[ ! $num_commits -gt 0 ]]); then
+    error "--number-of-commits must be a positive number" $RET_ILLEGAL_OPTION
+  fi
+
+  if [[ -z "$num_commits" ]] && [[ -z "$base_commit" ]] && [[ "$root" != "true" ]]; then
+    error "at least a <base-commit> or --num-commits must be specified or --root must be set" $RET_ILLEGAL_OPTION
+  fi
+
+  if [[ -n "$base_commit" ]] && [[ $num_commits -gt 0 ]]; then
+    error "<base-commit> cannot be used with --num-commits" $RET_ILLEGAL_OPTION
+  fi
+
+  if [[ -n "$base_commit" ]] && [[ "$root" == "true" ]]; then
+    error "<base-commit> cannot be used with --root" $RET_ILLEGAL_OPTION
+  fi
+
+  if [[ $num_commits -gt 0 ]] && [[ "$root" == "true" ]]; then
+    error "--num-commits cannot be used with --root" $RET_ILLEGAL_OPTION
+  fi
+
+  if [[ "$empty_strat" != "$EMPTY_STRAT_DROP" ]] && [[ "$empty_strat" != "$EMPTY_STRAT_KEEP" ]] && [[ "$empty_strat" != "$EMPTY_STRAT_ABORT" ]]; then
+    error "invalid --empty value: $empty_strat" $RET_ILLEGAL_OPTION
+  fi
+}
+
+parse_options() {
+  no_commit=false
+  edit=false
+  empty_strat=$EMPTY_STRAT_ABORT
+  root=false
+  verbose=false
+
+  if [[ ! "$1" == -* ]]; then
+    OPTIND=2
+    base_commit="$1"
+  else
+    OPTIND=1
+  fi
+
+  local long_opts="help,number-of-commits:,message:,no-commit,commit,no-edit,edit,allow-empty,empty:,root,verbose"
+  local optstring="hn:m:ev"
+
+  while get_options "$optstring" "$long_opts" opt "$@"; do
+    case "$opt" in
+    h | help)
+      print_usage
+      exit 0
+      ;;
+    n | number-of-commits)
+      num_commits=$OPTARG
+      ;;
+    m | message)
+      message=$OPTARG
+      ;;
+    no-commit)
+      no_commit=true
+      ;;
+    commit)
+      no_commit=false
+      ;;
+    e | edit)
+      edit=true
+      ;;
+    no-edit)
+      edit=false
+      ;;
+    allow-empty)
+      empty_strat=$EMPTY_STRAT_KEEP
+      ;;
+    empty)
+      empty_strat="$OPTARG"
+      ;;
+    root)
+      root=true
+      ;;
+    v | verbose)
+      verbose=true
+      ;;
+    :)
+      error_missing_opt_value "$OPTARG"
+      ;;
+    *)
+      error_unknown_opt "$OPTARG" "$(print_usage)"
+      ;;
+    esac
+  done
+
+  validate_options
+}
+
+find_base_commit_hash() {
+  local base_commit_hash
+
+  if [[ -n "$base_commit" ]]; then
+    revision_exists "$base_commit" || error "unknown revision: $base_commit" $RET_GENERIC_ERROR
+    is_revision_reachable "$base_commit" || fatal "unreachable revision: $base_commit" $RET_GENERIC_ERROR
+    base_commit_hash="$(resolve_revision "$base_commit")"
+  elif [[ "$root" == "true" ]]; then
+    base_commit_hash="$(find_root_commit)"
+  else
+    local revision="HEAD~$num_commits"
+    revision_exists "$revision" || error "too many commits. if you want to squash the whole history, use --root option" $RET_GENERIC_ERROR
+    base_commit_hash="$(resolve_revision "$revision")"
+  fi
+
+  echo "$base_commit_hash"
+}
+
+commit() {
+  local commit_opts=("$@")
+
+  local editor="$(find_git_editor)"
+  local git_config=(-c "core.editor=$editor >$(tty)")
+
+  local commit_result
+
+  git "${git_config[@]}" commit "${commit_opts[@]}" >/dev/null
+  commit_result=$?
+
+  if [[ $commit_result -ne 0 ]]; then
+    fatal "unable to commit" $RET_GENERIC_ERROR
+  fi
+}
+
+build_commit_message() {
+  local commit_hashes=("$@")
+  local message="# This is a combination of ${#commit_hashes[@]} commits."
+
+  for i in "${!commit_hashes[@]}"; do
+    if [[ $i -eq 0 ]]; then
+      message+='\n'"# This is the 1st commit message:"'\n'
+    else
+      message+='\n'"# This is the commit message #$((i + 1)):"'\n'
+    fi
+    local commit_body=$(git show -s --format="%B" "${commit_hashes[$i]}")
+    message+='\n'$commit_body'\n'
+  done
+
+  printf "$message"
+}
+
+print_commits() {
+  local dropped="$1"
+  local not_committed="$2"
+  local commits="${@:3}"
+
+  printf "The following commits are "
+  if [[ "$dropped" == "true" ]]; then
+    echo "dropped: "
+  else
+    echo "squashed: "
+  fi
+
+  for commit in ${commits[@]}; do
+    git log -n 1 "$commit" --format="%C(auto)[%h] (%an <%ae>): %s"
+  done
+
+  echo
+
+  if [[ "$not_committed" != "true" ]]; then
+    echo "into the following commit:"
+    git log -n 1 HEAD --format="%C(auto)[%h] (%an <%ae>): %s"
+    echo
+  fi
+}
+
+squash() {
+  local find_commit_result
+  local base_commit_hash
+  local drop=false
+
+  base_commit_hash="$(find_base_commit_hash)"
+  find_commit_result=$?
+
+  if [[ $find_commit_result -ne 0 ]]; then
+    exit $find_commit_result
+  fi
+
+  local total_num_commits
+  local commits_to_squash
+
+  if [[ "$root" == "true" ]]; then
+    total_num_commits=$(num_commits_between $base_commit_hash HEAD)
+    commits_to_squash=($(commits_between $base_commit_hash HEAD))
+  else
+    total_num_commits=$(num_commits_between ^$base_commit_hash HEAD)
+    commits_to_squash=($(commits_between ^$base_commit_hash HEAD))
+  fi
+
+  if [[ $total_num_commits -lt 2 ]]; then
+    fatal "at least 2 commits are needed to squash. found $total_num_commits"
+  fi
+
+  git reset "$base_commit_hash" --soft >/dev/null
+  local reset_result="$?"
+
+  if [[ $reset_result -ne 0 ]]; then
+    error "unable to squash. aborting" 0
+    abort_squash
+    fatal "squash failed" $RET_GENERIC_ERROR
+  fi
+
+  local commit_opts=()
+  if [[ "$root" == "true" ]]; then
+    commit_opts+=(--amend)
+  fi
+  if [[ "$edit" == "true" ]] || [[ -z "$message" ]]; then
+    commit_opts+=(--edit)
+  fi
+  if [[ -z "$message" ]]; then
+    commit_opts+=(--message "$(build_commit_message "${commits_to_squash[@]}")")
+  else
+    commit_opts+=(--message "$message")
+  fi
+
+  if ! has_staged_changes && ! has_unstaged_changes; then
+    local out_message="Squash ended up in an empty changeset."
+
+    case "$empty_strat" in
+    "$EMPTY_STRAT_ABORT")
+      out_message="${out_message,}"
+      out_message+=" aborting"
+      error "$out_message" $RET_GENERIC_ERROR
+      ;;
+    "$EMPTY_STRAT_KEEP")
+      if [[ "$no_commit" == "true" ]]; then
+        out_message+=" Dropping $total_num_commits commits since --no-commit is set"
+        drop=true
+      else
+        out_message+=" Creating an empty commit anyway"
+        commit_opts+=(--allow-empty)
+      fi
+      ;;
+    "$EMPTY_STRAT_DROP")
+      out_message+=" Dropping $total_num_commits commits"
+      drop=true
+      ;;
+    *)
+      fatal "illegal empty strat: $empty_strat" $RET_GENERIC_ERROR
+      ;;
+    esac
+
+    echo "$out_message"
+  fi
+
+  if [[ "$no_commit" != "true" ]] && [[ "$drop" != "true" ]]; then
+    commit "${commit_opts[@]}"
+  fi
+
+  if [[ "$verbose" == "true" ]]; then
+    print_commits "$drop" "$no_commit" "${commits_to_squash[@]}"
+  fi
+
+  if [[ "$drop" == "true" ]]; then
+    printf "Dropped $total_num_commits commits."
+  else
+    printf "Squashed $total_num_commits commits."
+  fi
+
+  if [[ "$no_commit" == "true" ]]; then
+    echo " Stopped before committing as requested."
+  else
+    echo
+  fi
+}
+
+check_prerequisites
+set_up
+parse_options "$@"
+check_repository_status
+
+squash

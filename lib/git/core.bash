@@ -68,6 +68,29 @@ check_uncommitted_changes() {
   fi
 }
 
+# check if current git repository has onging rebase
+# usage: has_ongoing_rebase
+has_ongoing_rebase() {
+  revision_exists REBASE_HEAD
+}
+
+# check if current git repository has onging rebase, fail with a fatal error if so
+# usage: check_ongoing_rebase <action_name> [<retcode>]
+check_ongoing_rebase() {
+  local action_name="$1"
+  local retcode=$2
+
+  if [ -z "$retcode" ]; then
+    retcode=$RET_GENERIC_ERROR
+  fi
+
+  if has_ongoing_rebase; then
+    error "rebase in progress" 0
+    hint "complete or abort the rebase first to proceed." >&2
+    fatal "$action_name failed" $retcode
+  fi
+}
+
 # get current git author
 # usage: get_current_git_user
 get_current_git_user() {
@@ -155,4 +178,11 @@ find_git_editor() {
   fi
 
   echo "$DEFAULT_GIT_EDITOR"
+}
+
+# check if a given revision is reachable from HEAD
+# usage: is_revision_reachable <revision>
+is_revision_reachable() {
+  local revision="$1"
+  git merge-base --is-ancestor "$revision" HEAD >/dev/null
 }
