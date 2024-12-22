@@ -73,7 +73,7 @@ print_usage() {
              keep    an empty commit will be created. implies --allow-empty
              abort   the squash operation will abort and the working directory will be reset to its state before the squash. this is the default behavior
     --root                squash all the commits reachable from HEAD
-    -v, --verbose         be verbose
+    -v, --[no-]verbose    be verbose
 "
 }
 
@@ -156,6 +156,9 @@ parse_options() {
       ;;
     v | verbose)
       verbose=true
+      ;;
+    no-verbose)
+      verbose=false
       ;;
     :)
       error_missing_opt_value "$OPTARG"
