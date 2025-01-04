@@ -14,6 +14,10 @@ readonly EMPTY_STRAT_DROP=drop
 readonly EMPTY_STRAT_KEEP=keep
 readonly EMPTY_STRAT_ABORT=abort
 
+readonly SQUASH_CONFIG_PREFIX="squash"
+readonly VERBOSE_CONFIG_KEY="verbose"
+readonly VERBOSE_CONFIG_DEFAULT_VALUE="false"
+
 abort_squash() {
   local current_head="$(resolve_revision "HEAD")"
 
@@ -110,6 +114,12 @@ parse_options() {
   empty_strat=$EMPTY_STRAT_ABORT
   root=false
   verbose=false
+
+  local verbose_config="$(get_git_config "$SQUASH_CONFIG_PREFIX.$VERBOSE_CONFIG_KEY" "$VERBOSE_CONFIG_DEFAULT_VALUE")"
+
+  if [[ "$verbose_config" == "true" ]]; then
+    verbose=true
+  fi
 
   if [[ ! "$1" == -* ]]; then
     OPTIND=2

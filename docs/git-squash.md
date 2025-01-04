@@ -56,3 +56,9 @@ __`-v`__ \
 __`--[no-]verbose`__ \
 Be verbose. With this option enabled, `git squash` will print which commits
 are squashed into which commit.
+
+## Configuration
+
+__`squash.verbose`__ \
+Setting this variable to true enables verbose output for `git squash` by default.
+This behavior can be overridden by using the `--no-verbose` option.
