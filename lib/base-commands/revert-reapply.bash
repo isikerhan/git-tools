@@ -16,6 +16,9 @@ readonly ACTION_REAPPLY="REAPPLY"
 
 readonly REAPPLY_HOOKS_PATH="$__DIR_LIB_BASE_COMMANDS_REVERT_REAPPLY__/../hooks/reapply"
 
+readonly VERBOSE_CONFIG_KEY="verbose"
+readonly VERBOSE_CONFIG_DEFAULT_VALUE="false"
+
 # check for the prerequisites for auto-revert/reapply
 # usage: check_prerequisites
 # *intended for internal usage within this file
@@ -148,6 +151,12 @@ parse_options() {
   extended_regexp=false
   fixed_strings=false
   perl_regexp=false
+
+  local verbose_config="$(get_git_config "$git_config_prefix.$VERBOSE_CONFIG_KEY" "$VERBOSE_CONFIG_DEFAULT_VALUE")"
+  
+  if [[ "$verbose_config" == "true" ]]; then
+    verbose=true
+  fi
 
   if [[ ! "$1" == -* ]]; then
     OPTIND=2
@@ -593,11 +602,13 @@ revert_reapply() {
 
   if [ "$revert_reapply_action" == "$ACTION_AUTO_REVERT" ]; then
     git_command_name="revert"
+    git_config_prefix="autoRevert"
     action_name="auto-revert"
     action_name_short="revert"
     action_name_past="reverted"
   else
     git_command_name="cherry-pick"
+    git_config_prefix="reapply"
     action_name="reapply"
     action_name_short="reapply"
     action_name_past="reapplied"

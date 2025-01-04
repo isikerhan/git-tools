@@ -100,3 +100,9 @@ Consider the limiting patterns to be fixed strings. (don't interpret pattern as 
 __`-P`__ \
 __`--perl-regex`__ \
 Consider the limiting patterns to be Perl-compatible regular expressions.
+
+## Configuration
+
+__`autoRevert.verbose`__ \
+Setting this variable to true enables verbose output for `git auto-revert` by default.
+This behavior can be overridden by using the `--no-verbose` option.
