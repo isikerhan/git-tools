@@ -118,7 +118,7 @@ parse_options() {
     OPTIND=1
   fi
 
-  local long_opts="help,number-of-commits:,message:,no-commit,commit,no-edit,edit,allow-empty,empty:,root,verbose"
+  local long_opts="help,number-of-commits:,message:,no-commit,commit,no-edit,edit,allow-empty,empty:,root,verbose,no-verbose"
   local optstring="hn:m:ev"
 
   while get_options "$optstring" "$long_opts" opt "$@"; do
