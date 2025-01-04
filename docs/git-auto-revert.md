@@ -101,6 +101,70 @@ __`-P`__ \
 __`--perl-regex`__ \
 Consider the limiting patterns to be Perl-compatible regular expressions.
 
+## Examples
+
+__`git auto-revert TASK-123`__ \
+Revert all commits whose log message starts with `TASK-123` (optionally followed by a colon).
+This is useful for automatically reverting commits associated with a specific task or issue, typically referenced by its identifier.
+
+For example, the following commits would be matched and reverted:
+
+```console
+$ git log 
+cac83ad TASK-123: make some changes on my feature
+fdcd576 TASK-123 implement my feature
+```
+
+__`git auto-revert "feat(my-feature)"`__ \
+Revert all commits whose log message starts with `feat(my-feature)`, following the same pattern as the previous example.
+
+For example, the following commits would be matched and reverted:
+
+```console
+$ git log 
+8c3cc95 feat(my-feature): make some changes on my feature
+6ad380b feat(my-feature) implement my feature
+```
+
+__`git auto-revert --grep="^TASK" --grep="feature$"`__ \
+Revert all commits whose log messages match both the patterns `^TASK` (starting with "TASK") and `feature$` (ending with "feature").
+This is useful when you can't match commits by a specific task ID or exact keyword but need to apply more flexible filters.
+
+__`git auto-revert TASK-123 --single-commit`__ \
+Revert all commits whose log message starts with `TASK-123`,
+and combine them into a single revert commit, rather than creating separate commits for each revert.
+This is useful when reverting several commits at once, especially if you want to keep the history clean
+and easily reapply the changes later by reverting a single commit.
+
+The resulting revert commit will look like this:
+
+```console
+$ git show -s HEAD
+commit 92df020c503df8fa7d891350ddb85e6baae63c41 (HEAD -> my-feature)
+Author: John Doe <john.doe@example.com>
+Date:   Wed Jan 1 00:00:00 2025
+
+    Revert "TASK-123"
+    
+    This reverts commit 9dec7683ebb507d9be93a72824b7c1b21af45571.
+    This reverts commit 1d818c498d32e4825778ee74d8bb1027ecf27d0c.
+```
+
+__`git auto-revert TASK-123 --no-commit`__ \
+Revert all commits whose log message starts with `TASK-123`, but do not make a new commit automatically.
+
+__`git auto-revert TASK-123 --author=me`__ \
+Revert all commits whose log message starts with `TASK-123` and authored by the current user.
+
+__`git auto-revert TASK-123 --committer=me`__ \
+Revert all commits whose log message starts with `TASK-123` and committed by the current user.
+
+__`git auto-revert TASK-123 --since="2 weeks ago" --until="yesterday"`__ \
+Revert all commits whose log message starts with `TASK-123` and were made between the specified dates (from 2 weeks ago to yesterday).
+
+__`git auto-revert TASK-123 --since-commit="v1.2" --until-commit="HEAD~2"`__ \
+Revert all commits whose log message starts with `TASK-123` and were made within the specified range of revisions (from tag v1.2 to revision HEAD~2).
+
 ## Configuration
 
 __`autoRevert.verbose`__ \

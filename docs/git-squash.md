@@ -57,6 +57,53 @@ __`--[no-]verbose`__ \
 Be verbose. With this option enabled, `git squash` will print which commits
 are squashed into which commit.
 
+## Examples
+
+__`git squash -n 3`__ \
+Squash latest 3 commits.
+
+__`git squash HEAD~3`__ \
+Squash latest commits after `HEAD~3`. This is equivalent to running `git squash -n 3`.
+
+__`git squash development`__ \
+Squash all the commits which are not present in development but in the current branch.
+This is useful if you work on a repository where all the feature branches are merged
+into a common branch such as "development" and you want to keep the commit history clean.
+The target revision (in this case, development) must be reachable from the tip
+of your branch. So make sure to rebase your branch with the target branch or revision
+before using this command.
+
+```console
+git rebase development
+git squash development
+```
+
+or squash against a remote branch:
+
+```console
+git fetch
+git rebase origin/development
+git squash origin/development 
+```
+
+or against a tag:
+
+```console
+git fetch --tags
+git rebase v1.2
+git squash v1.2
+```
+
+__`git squash --root`__ \
+Squash all the commits starting from the `HEAD` down to the root commit.
+This squashes all the history reachable from the current `HEAD`.
+
+__`git squash --number-of-commits 5 --message "hello world!"`__ \
+Squash latest 5 commits and use the specified message as the log message.
+
+__`git squash -n 5 --no-commit`__ \
+Squash latest 5 commits, but do not make a new commit automatically.
+
 ## Configuration
 
 __`squash.verbose`__ \
