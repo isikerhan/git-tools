@@ -38,3 +38,5 @@ Once you install Git Tools, the following commands will be available for use:
 - [__`git reapply`__](docs/git-reapply.md) Reapply previously reverted commits based on a set of filters
 
 - [__`git squash`__](docs/git-squash.md) Squash the most recent commits into a single commit
+
+- [__`git whoami`__](docs/git-whoami.md) Print current Git user information

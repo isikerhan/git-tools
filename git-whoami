@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# Print current Git user information
+
+__DIR__=$(dirname -- "${BASH_SOURCE[0]}")
+
+. "$__DIR__/lib/core/error.bash"
+. "$__DIR__/lib/git/config.bash"
+. "$__DIR__/lib/git/core.bash"
+. "$__DIR__/lib/util/get_options.bash"
+
+check_prerequisites() {
+  check_git_command
+}
+
+print_usage() {
+  echo "usage: git whoami [<options>]
+
+    -s, --short           print the user information in short format (only the name)
+    --long                print the full user information. this is the default
+"
+}
+
+parse_options() {
+  short=false
+
+  local long_opts="short,long"
+  local optstring="hs"
+
+  while get_options "$optstring" "$long_opts" opt "$@"; do
+    case "$opt" in
+    h | help)
+      print_usage
+      exit 0
+      ;;
+    s | short)
+      short=true
+      ;;
+    long)
+      short=false
+      ;;
+    :)
+      error_missing_opt_value "$OPTARG"
+      ;;
+    *)
+      error_unknown_opt "$OPTARG" "$(print_usage)"
+      ;;
+    esac
+  done
+}
+
+print_user_information() {
+  local user_information=$(get_git_config "user.name")
+
+  if [[ "$short" != "true" ]]; then
+    user_information+=" <$(get_git_config "user.email")>"
+  fi
+
+  echo "$user_information"
+}
+
+check_prerequisites
+parse_options "$@"
+
+print_user_information
