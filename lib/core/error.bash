@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Git Tools.  If not, see <https://www.gnu.org/licenses/>.
 
-if [ -n "$__LIB_CORE_ERROR__" ]; then
+if [[ -n "$__LIB_CORE_ERROR__" ]]; then
   return
 fi
 readonly __LIB_CORE_ERROR__=true
@@ -39,13 +39,13 @@ function fail() {
   local message="$2"
   local exit_code="$3"
 
-  if [ -z "$exit_code" ]; then
+  if [[ -z "$exit_code" ]]; then
     exit_code=1
   fi
 
   printf "$level: $message"'\n' >&2
 
-  if [ $exit_code -ne 0 ]; then
+  if [[ $exit_code -ne 0 ]]; then
     exit "$exit_code"
   fi
 }
@@ -97,7 +97,7 @@ function error_unknown_opt() {
 
   local message="unknown $(get_option_type_name $opt) \`$opt'"
 
-  if [ -n "$usage" ]; then
+  if [[ -n "$usage" ]]; then
     message+='\n'
     message+="$usage"
   fi
