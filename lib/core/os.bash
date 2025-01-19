@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Git Tools.  If not, see <https://www.gnu.org/licenses/>.
 
-if [ -n "$__LIB_CORE_OS__" ]; then
+if [[ -n "$__LIB_CORE_OS__" ]]; then
   return
 fi
 readonly __LIB_CORE_OS__=true
@@ -69,7 +69,7 @@ alloc_new_fd() {
           eval "exec $i>$1" 2>/dev/null
         fi
 
-        if [ $? -eq 0 ]; then
+        if [[ $? -eq 0 ]]; then
           __fd__=$i
           break
         fi

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Git Tools.  If not, see <https://www.gnu.org/licenses/>.
 
-if [ -n "$__LIB_GIT_TAG__" ]; then
+if [[ -n "$__LIB_GIT_TAG__" ]]; then
   return
 fi
 readonly __LIB_GIT_TAG__=true

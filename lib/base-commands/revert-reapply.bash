@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Git Tools.  If not, see <https://www.gnu.org/licenses/>.
 
-if [ -n "$__LIB_BASE_COMMANDS_REVERT_REAPPLY__" ]; then
+if [[ -n "$__LIB_BASE_COMMANDS_REVERT_REAPPLY__" ]]; then
   return
 fi
 readonly __LIB_BASE_COMMANDS_REVERT_REAPPLY__=true
@@ -61,7 +61,7 @@ check_repository_status() {
 print_options() {
   echo
 
-  if [ "$revert_reapply_action" == "$ACTION_REAPPLY" ]; then
+  if [[ "$revert_reapply_action" == "$ACTION_REAPPLY" ]]; then
     echo "    --source              source revision that commits are searched from
     --[no-]decorate-messages
                           add decoration to auto-generated commit messages to indicate they are reapplied"
@@ -119,7 +119,7 @@ print_reapply_usage() {
 # usage: print_usage
 # *intended for internal usage within this file
 print_usage() {
-  if [ "$revert_reapply_action" == "$ACTION_AUTO_REVERT" ]; then
+  if [[ "$revert_reapply_action" == "$ACTION_AUTO_REVERT" ]]; then
     print_auto_revert_usage
   else
     print_reapply_usage
@@ -132,24 +132,24 @@ print_usage() {
 # usage: validate_options
 # *intended for internal usage within this file
 validate_options() {
-  if [ -n "$tag" ] && [ "${#grep[@]}" -gt 0 ]; then
+  if [[ -n "$tag" ]] && [[ "${#grep[@]}" -gt 0 ]]; then
     error "<commit-message-tag> cannot be used with --grep" $RET_ILLEGAL_OPTION
   fi
 
-  if [ -z "$tag" ] && [ "${#grep[@]}" -eq 0 ]; then
+  if [[ -z "$tag" ]] && [[ "${#grep[@]}" -eq 0 ]]; then
     error "either a <commit-message-tag> or --grep must be specified" $RET_ILLEGAL_OPTION
   fi
 
   local tag_regex=^[\(\)a-zA-Z0-9_-]+$
-  if [ -n "$tag" ] && [[ ! $tag =~ $tag_regex ]]; then
+  if [[ -n "$tag" ]] && [[ ! $tag =~ $tag_regex ]]; then
     error "<commit-message-tag> must consist of only letters, digits, hypens, underscores and parentheses" $RET_ILLEGAL_OPTION
   fi
 
-  if [ "$single_commit" == "true" ] && [ -z "$single_commit_message" ] && [ -z "$tag" ]; then
+  if [[ "$single_commit" == "true" ]] && [[ -z "$single_commit_message" ]] && [[ -z "$tag" ]]; then
     error "--message is required when reverting in a single commit and <commit-message-tag> is not specified" $RET_ILLEGAL_OPTION
   fi
 
-  if [ "$single_commit" == "true" ] && [ "$no_commit" == "true" ]; then
+  if [[ "$single_commit" == "true" ]] && [[ "$no_commit" == "true" ]]; then
     error "--single-commit cannot be used with --no-commit" $RET_ILLEGAL_OPTION
   fi
 }
@@ -190,7 +190,7 @@ parse_options() {
   long_opts+=",all-match,invert-grep,regexp-ignore-case,basic-regexp,extended-regexp,fixed-strings,perl-regexp"
   local optstring="hsm:neviEFP"
 
-  if [ "$revert_reapply_action" == "$ACTION_REAPPLY" ]; then
+  if [[ "$revert_reapply_action" == "$ACTION_REAPPLY" ]]; then
     long_opts+=",source,decorate-messages,no-decorate-messages"
   fi
 
@@ -333,7 +333,7 @@ find_commits() {
 
   local find_commits_opts=(--no-merges)
 
-  if [ "$revert_reapply_action" == "$ACTION_REAPPLY" ]; then
+  if [[ "$revert_reapply_action" == "$ACTION_REAPPLY" ]]; then
     find_commits_opts+=(--reverse)
   fi
 
@@ -404,10 +404,10 @@ find_commits() {
 build_commit_message() {
   local commit_message
 
-  if [ -n "$single_commit_message" ]; then
+  if [[ -n "$single_commit_message" ]]; then
     commit_message="$single_commit_message"
   else
-    if [ "$revert_reapply_action" == "$ACTION_AUTO_REVERT" ]; then
+    if [[ "$revert_reapply_action" == "$ACTION_AUTO_REVERT" ]]; then
       commit_message="Revert \"$tag\""
     else
       commit_message="Reapply \"$tag\""
@@ -421,7 +421,7 @@ build_commit_message() {
       continue
     fi
 
-    if [ "$revert_reapply_action" == "$ACTION_AUTO_REVERT" ]; then
+    if [[ "$revert_reapply_action" == "$ACTION_AUTO_REVERT" ]]; then
       commit_message+="This reverts commit $commit."$'\n'
     else
       commit_message+="This reapplies commit $commit."$'\n'
@@ -436,7 +436,7 @@ build_commit_message() {
 # *intended for internal usage within this file
 is_skippable() {
   local next_todo=$(get_next_todo)
-  [ "$todo" != "$next_todo" ] && has_sequencer && ! has_staged_changes && ! has_unstaged_changes
+  [[ "$todo" != "$next_todo" ]] && has_sequencer && ! has_staged_changes && ! has_unstaged_changes
 }
 
 # check if given commit is skipped during auto-revert/reapply
@@ -446,7 +446,7 @@ is_skipped() {
   local commit="$1"
 
   for skipped_commit in "${skipped_commit_hashes[@]}"; do
-    if [ "$skipped_commit" == "$commit" ]; then
+    if [[ "$skipped_commit" == "$commit" ]]; then
       true
       return
     fi
@@ -462,7 +462,7 @@ commit() {
   local message=$(build_commit_message)
   local commit_opts=()
 
-  if [ "$edit" == "true" ]; then
+  if [[ "$edit" == "true" ]]; then
     commit_opts+=(--edit)
   else
     commit_opts+=(--no-edit)
@@ -479,7 +479,7 @@ commit() {
 
   close_temp_output $temp_output $temp_output_pid
 
-  if [ $commit_result -ne 0 ]; then
+  if [[ $commit_result -ne 0 ]]; then
     exit $command_result
   fi
 }
@@ -515,7 +515,7 @@ should_decorate_messages() {
 # usage: do_revert_reapply <action>
 # *intended for internal usage within this file
 do_revert_reapply() {
-  if [ -z "$commit_hashes" ]; then
+  if [[ -z "$commit_hashes" ]]; then
     error "no matching commits found. nothing to do" $RET_GENERIC_ERROR
   fi
 
@@ -523,11 +523,11 @@ do_revert_reapply() {
 
   local command_opts=()
 
-  if [ "$no_commit" == "true" ]; then
+  if [[ "$no_commit" == "true" ]]; then
     command_opts+=(--no-commit)
   fi
 
-  if [ "$edit" == "true" ] && [ "$single_commit" != "true" ]; then
+  if [[ "$edit" == "true" ]] && [[ "$single_commit" != "true" ]]; then
     command_opts+=(--edit)
   else
     command_opts+=(--no-edit)
@@ -543,7 +543,7 @@ do_revert_reapply() {
   local command_result
   local git_config=(-c "color.advice=always" -c "core.editor=$editor")
 
-  if [ "$revert_reapply_action" == "$ACTION_REAPPLY" ] && should_decorate_messages; then
+  if [[ "$revert_reapply_action" == "$ACTION_REAPPLY" ]] && should_decorate_messages; then
     git_config+=(-c "core.hooksPath=$REAPPLY_HOOKS_PATH")
   fi
 
@@ -552,8 +552,8 @@ do_revert_reapply() {
 
   skipped_commit_hashes=()
 
-  if [ $command_result -ne 0 ] && [ "$auto_skip_empty" == "true" ]; then
-    while [ $command_result -ne 0 ] && is_skippable; do
+  if [[ $command_result -ne 0 ]] && [[ "$auto_skip_empty" == "true" ]]; then
+    while [[ $command_result -ne 0 ]] && is_skippable; do
       todo=$(get_next_todo)
 
       command_err="$(git "${git_config[@]}" $git_command_name --skip "${command_opts[@]}" 2>&1 >/dev/null)"
@@ -569,20 +569,20 @@ do_revert_reapply() {
 
   local numdone=$((${#commit_hashes[@]} - ${#skipped_commit_hashes[@]}))
 
-  if [ $numdone -eq 0 ] || ([ ${#commit_hashes[@]} -eq 1 ] && [ -z "$command_err" ] && [ $command_result -ne 0 ]); then
-    if [ "$verbose" == "true" ]; then
+  if [[ $numdone -eq 0 ]] || ([[ ${#commit_hashes[@]} -eq 1 ]] && [[ -z "$command_err" ]] && [[ $command_result -ne 0 ]]); then
+    if [[ "$verbose" == "true" ]]; then
       echo "The following commits are skipped:"
       print_commits ${commit_hashes[@]}
       echo
     fi
 
     echo "All matched commits are skipped. Nothing to $action_name_short"
-  elif [ $command_result -eq 0 ]; then
-    if [ "$single_commit" == "true" ]; then
+  elif [[ $command_result -eq 0 ]]; then
+    if [[ "$single_commit" == "true" ]]; then
       squash_commits "$base_commit"
     fi
 
-    if [ "$verbose" == "true" ]; then
+    if [[ "$verbose" == "true" ]]; then
       local done_commit_hashes=()
       for commit in ${commit_hashes[@]}; do
         if ! is_skipped "$commit"; then
@@ -594,7 +594,7 @@ do_revert_reapply() {
       print_commits ${done_commit_hashes[@]}
       echo
 
-      if [ ${#skipped_commit_hashes[@]} -gt 0 ]; then
+      if [[ ${#skipped_commit_hashes[@]} -gt 0 ]]; then
         echo "The following commits are skipped:"
         print_commits ${skipped_commit_hashes[@]}
         echo
@@ -602,12 +602,12 @@ do_revert_reapply() {
     fi
 
     printf "Successfully $action_name_past $numdone commit(s)"
-    if [ ${#skipped_commit_hashes[@]} -ne 0 ]; then
+    if [[ ${#skipped_commit_hashes[@]} -ne 0 ]]; then
       printf " (skipped ${#skipped_commit_hashes[@]})"
     fi
     echo ""
 
-    if [ "$no_commit" == "true" ]; then
+    if [[ "$no_commit" == "true" ]]; then
       local gitdir="$(get_git_dir)"
       echo "$(build_commit_message)" >"$gitdir/MERGE_MSG"
 
@@ -615,7 +615,7 @@ do_revert_reapply() {
       hint "use \"git $git_command_name --continue\" or \"git commit\" to commit the changes"
     fi
   else
-    if [ -n "$command_err" ]; then
+    if [[ -n "$command_err" ]]; then
       printf "${command_err%'\n'}\n\n" >&2
     fi
     error "unable to $action_name" 0
@@ -633,11 +633,11 @@ revert_reapply() {
   revert_reapply_action="$1"
   local options=("${@:2}")
 
-  if [ "$revert_reapply_action" != "$ACTION_AUTO_REVERT" ] && [ "$revert_reapply_action" != "$ACTION_REAPPLY" ]; then
+  if [[ "$revert_reapply_action" != "$ACTION_AUTO_REVERT" ]] && [[ "$revert_reapply_action" != "$ACTION_REAPPLY" ]]; then
     fatal "invalid action: $revert_reapply_action" $RET_GENERIC_ERROR
   fi
 
-  if [ "$revert_reapply_action" == "$ACTION_AUTO_REVERT" ]; then
+  if [[ "$revert_reapply_action" == "$ACTION_AUTO_REVERT" ]]; then
     git_command_name="revert"
     git_config_prefix="autoRevert"
     action_name="auto-revert"

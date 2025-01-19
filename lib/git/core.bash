@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Git Tools.  If not, see <https://www.gnu.org/licenses/>.
 
-if [ -n "$__LIB_GIT_CORE__" ]; then
+if [[ -n "$__LIB_GIT_CORE__" ]]; then
   return
 fi
 readonly __LIB_GIT_CORE__=true
@@ -38,7 +38,7 @@ check_git_command() {
 # usage: check_git_repository
 check_git_repository() {
   local inside_work_tree=$(git rev-parse --is-inside-work-tree 2>/dev/null)
-  if [ ! "$inside_work_tree" == "true" ]; then
+  if [[ ! "$inside_work_tree" == "true" ]]; then
     fatal "not a git repository (or any of the parent directories): .git" $RET_GENERIC_ERROR
   fi
 }
@@ -55,7 +55,7 @@ check_ongoing_revert_or_cherry_pick() {
   local action_name="$1"
   local retcode=$2
 
-  if [ -z "$retcode" ]; then
+  if [[ -z "$retcode" ]]; then
     retcode=$RET_GENERIC_ERROR
   fi
 
@@ -78,7 +78,7 @@ check_uncommitted_changes() {
   local action_name="$1"
   local retcode=$2
 
-  if [ -z "$retcode" ]; then
+  if [[ -z "$retcode" ]]; then
     retcode=$RET_GENERIC_ERROR
   fi
 
@@ -101,7 +101,7 @@ check_ongoing_rebase() {
   local action_name="$1"
   local retcode=$2
 
-  if [ -z "$retcode" ]; then
+  if [[ -z "$retcode" ]]; then
     retcode=$RET_GENERIC_ERROR
   fi
 
@@ -136,7 +136,7 @@ get_git_dir() {
 has_staged_changes() {
   git diff --cached --exit-code >/dev/null 2>&1
   local ret=$?
-  ! [ $ret -eq 0 ]
+  ! [[ $ret -eq 0 ]]
 }
 
 # check if current git repository has unstaged changes. returns 0 if so, non-zero otherwise
@@ -144,20 +144,20 @@ has_staged_changes() {
 has_unstaged_changes() {
   git diff --exit-code >/dev/null 2>&1
   local ret=$?
-  ! [ $ret -eq 0 ]
+  ! [[ $ret -eq 0 ]]
 }
 
 # check if current git repository has unresolved conflicts. returns 0 if so, non-zero otherwise
 # usage: has_unresolved_conflicts
 has_unresolved_conflicts() {
-  [ -n "$(git diff --name-only --diff-filter=U --relative 2>/dev/null)" ]
+  [[ -n "$(git diff --name-only --diff-filter=U --relative 2>/dev/null)" ]]
 }
 
 # check if current git repository has a sequencer. this indicates that there's an ongoing revert or cherry-pick
 # usage: has_sequencer
 has_sequencer() {
   local gitdir="$(get_git_dir)"
-  [ -d "$gitdir/sequencer" ]
+  [[ -d "$gitdir/sequencer" ]]
 }
 
 # get next todo item from the sequencer
