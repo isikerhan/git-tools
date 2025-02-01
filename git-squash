@@ -225,7 +225,7 @@ commit() {
   local commit_opts=("$@")
 
   local editor="$(find_git_editor)"
-  local git_config=(-c "core.editor=$editor >$(tty)")
+  local git_config=(-c "core.editor=>$(tty) $editor")
 
   local commit_result
 
