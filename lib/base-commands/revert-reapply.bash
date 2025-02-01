@@ -614,7 +614,7 @@ do_revert_reapply() {
 # usage revert_reapply <action> <options>
 revert_reapply() {
   revert_reapply_action="$1"
-  local options=(${@:2})
+  local options=("${@:2}")
 
   if [ "$revert_reapply_action" != "$ACTION_AUTO_REVERT" ] && [ "$revert_reapply_action" != "$ACTION_REAPPLY" ]; then
     fatal "invalid action: $revert_reapply_action" $RET_GENERIC_ERROR

@@ -25,4 +25,4 @@ __DIR__=$(dirname -- "${BASH_SOURCE[0]}")
 
 . "$__DIR__/lib/base-commands/revert-reapply.bash"
 
-revert_reapply $ACTION_AUTO_REVERT $@
+revert_reapply $ACTION_AUTO_REVERT "$@"
