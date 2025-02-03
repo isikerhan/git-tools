@@ -28,4 +28,4 @@ echo "Reapply \"$(head -n 1 "$commit_msg_file")\"
 This reapplies commit $(git show -s --pretty="%H" CHERRY_PICK_HEAD).
 
 $(tail -n +2 "$commit_msg_file")
-" > "$commit_msg_file"
+" >"$commit_msg_file"

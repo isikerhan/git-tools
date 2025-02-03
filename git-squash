@@ -333,7 +333,7 @@ squash() {
 
     case "$empty_strat" in
     "$EMPTY_STRAT_ABORT")
-      out_message="$(echo "$out_message" | tr "[:upper:]" "[:lower:]" )"
+      out_message="$(echo "$out_message" | tr "[:upper:]" "[:lower:]")"
       out_message+=" aborting"
       error "$out_message" $RET_GENERIC_ERROR
       ;;
