@@ -173,7 +173,7 @@ parse_options() {
   perl_regexp=false
 
   local verbose_config="$(get_git_config "$git_config_prefix.$VERBOSE_CONFIG_KEY" "$VERBOSE_CONFIG_DEFAULT_VALUE")"
-  
+
   if [[ "$verbose_config" == "true" ]]; then
     verbose=true
   fi
@@ -304,6 +304,7 @@ find_commits() {
   fi
 
   local revision_range
+  local first_parent=false
 
   if [[ -n "$since_commit" ]]; then
     revision_exists "$since_commit" || error "unknown revision: $since_commit"
@@ -319,10 +320,11 @@ find_commits() {
 
   if [[ -n "$rev_start" ]] || [[ -n "$rev_end" ]]; then
     if [[ -z "$rev_start" ]]; then
-      local rev_start="$(find_root_commit "$source_revision")"
+      revision_range="$rev_end"
+      first_parent=true
+    else
+      revision_range="$rev_start..$rev_end"
     fi
-
-    revision_range="$rev_start..$rev_end"
   fi
 
   if [[ -n "$source_revision" ]] && [[ -z "$revision_range" ]]; then
@@ -367,6 +369,10 @@ find_commits() {
     if [[ "$perl_regexp" == "true" ]]; then
       find_commits_opts+=(--perl-regexp)
     fi
+  fi
+
+  if [[ "$first_parent" == "true" ]]; then
+    find_commits_opts+=(--first-parent)
   fi
 
   if [[ -n "$author" ]]; then
