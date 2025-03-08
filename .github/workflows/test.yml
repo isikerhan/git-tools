@@ -1,0 +1,29 @@
+name: Run tests
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+      - name: Set up Bats
+        working-directory: ${{ runner.temp }}
+        run: |
+          git clone https://github.com/bats-core/bats-core.git 
+          sudo ./bats-core/install.sh /usr/local
+          echo 'OS is: ${{ runner.os }}'
+      - name: Set up Git
+        run: |
+          sudo apt update
+          sudo apt install libz-dev libssl-dev libcurl4-gnutls-dev libexpat1-dev gettext cmake gcc
+          wget https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.22.0.tar.gz
+          tar -xzf git-2.22.0.tar.gz
+          cd git-2.22.0
+          sudo make prefix=/usr/local/git all
+          sudo make prefix=/usr/local/git install
+          export PATH="/usr/local/git/bin:$PATH"
+          git --version
+      - name: Check commands
+        run: |
+          bats -v
+          git --version
