@@ -225,11 +225,11 @@ commit() {
   local commit_opts=("$@")
 
   local editor="$(find_git_editor)"
-  local git_config=(-c "core.editor=>$(tty) $editor")
+  local git_config=(-c "core.editor=>&3 $editor")
 
   local commit_result
 
-  git "${git_config[@]}" commit "${commit_opts[@]}" >/dev/null
+  git "${git_config[@]}" commit "${commit_opts[@]}" 3>&1 >/dev/null
   commit_result=$?
 
   if [[ $commit_result -ne 0 ]]; then
