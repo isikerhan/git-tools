@@ -205,5 +205,5 @@ find_git_editor() {
 is_revision_reachable() {
   local revision="$1"
   local from_revision="${2:-HEAD}"
-  git merge-base --is-ancestor "$revision" "$from_revision" >/dev/null
+  git merge-base --is-ancestor "$revision" "$from_revision" >/dev/null 2>&1
 }
