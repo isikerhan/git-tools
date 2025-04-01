@@ -100,6 +100,23 @@ teardown() {
   assert_equal "$(git show -s --format=%s HEAD)" "$message"
 }
 
+@test "git squash without -m should ask the user for a commit log message" {
+  local n=4
+
+  echo "Hello, World!" >file1.txt && git add file1.txt && git commit -m "add file1"
+  echo "Hello, Mercury!" >file2.txt && git add file2.txt && git commit -m "add file2"
+  echo "Hello, Venus!" >file3.txt && git add file3.txt && git commit -m "add file3"
+  echo "Hello, Mars!" >file4.txt && git add file4.txt && git commit -m "add file4"
+  echo "Hello, Jupiter!" >file5.txt && git add file5.txt && git commit -m "add file5"
+
+  local message="This is a test log message!"
+  local config=(-c "core.editor=echo $message >")
+  run git "${config[@]}" squash -n $n
+
+  assert_success
+  assert_equal "$(git show -s --format=%s)" "$message"
+}
+
 @test "git squash with --no-commit should squash the commits but not create a commit" {
   echo "Hello, World!" >file1.txt && git add file1.txt && git commit -m "add file1"
   echo "Hello, Mercury!" >file2.txt && git add file2.txt && git commit -m "add file2"
