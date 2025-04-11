@@ -1,0 +1,35 @@
+name: Run extended tests
+description: Runs the tests across multiple OS and Git versions.
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - v*
+    paths-ignore:
+      - README.md
+      - LICENSE
+      - 'docs/**'
+
+jobs:
+  run-tests:
+    name: "Run tests on ${{ matrix.runs-on }} with Git v${{ matrix.git-version }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubuntu-24.04, ubuntu-24.04-arm, ubuntu-22.04, ubuntu-22.04-arm, ubuntu-20.04, macos-15, macos-14, macos-13]
+        git-version: ["2.23.0", "2.44.0", "2.48.1"]
+        include:
+          - runs-on: windows-2025
+            git-version: 2.48.1.windows.1
+          - runs-on: windows-2022
+            git-version: 2.23.0.windows.1
+          - runs-on: windows-2022
+            git-version: 2.44.0.windows.1
+          - runs-on: windows-2022
+            git-version: 2.48.1.windows.1
+          - runs-on: windows-2019
+            git-version: 2.48.1.windows.1
+    uses: ./.github/workflows/run-tests.yml
+    with:
+      runs-on: ${{ matrix.runs-on }}
+      git-version: ${{ matrix.git-version }}
