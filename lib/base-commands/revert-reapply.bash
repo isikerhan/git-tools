@@ -468,11 +468,16 @@ commit() {
     commit_opts+=(--no-edit)
   fi
 
-  local editor="$(find_git_editor)"
-  local git_config=(-c "color.advice=always" -c "core.editor=>&3 $editor")
+  local temp_output temp_output_pid
+  create_temp_output 1 temp_output temp_output_pid
 
-  git "${git_config[@]}" commit -m "$message" "${commit_opts[@]}" 3>&1 >/dev/null
+  local editor="$(redirected_git_editor "$temp_output")"
+  local git_config=(-c "color.advice=always" -c "core.editor=$editor")
+
+  git "${git_config[@]}" commit -m "$message" "${commit_opts[@]}" >/dev/null
   local commit_result=$?
+
+  close_temp_output $temp_output $temp_output_pid
 
   if [ $commit_result -ne 0 ]; then
     exit $command_result
@@ -528,17 +533,21 @@ do_revert_reapply() {
     command_opts+=(--no-edit)
   fi
 
-  local editor="$(find_git_editor)"
+  local temp_output
+  local temp_output_pid
+  create_temp_output 1 temp_output temp_output_pid
+
+  local editor="$(redirected_git_editor "$temp_output")"
 
   local command_err
   local command_result
-  local git_config=(-c "color.advice=always" -c "core.editor=>&3 $editor")
+  local git_config=(-c "color.advice=always" -c "core.editor=$editor")
 
   if [ "$revert_reapply_action" == "$ACTION_REAPPLY" ] && should_decorate_messages; then
     git_config+=(-c "core.hooksPath=$REAPPLY_HOOKS_PATH")
   fi
 
-  command_err="$(git "${git_config[@]}" $git_command_name "${command_opts[@]}" ${commit_hashes[*]} 3>&1 2>&1 >/dev/null)"
+  command_err="$(git "${git_config[@]}" $git_command_name "${command_opts[@]}" ${commit_hashes[*]} 2>&1 >/dev/null)"
   command_result=$?
 
   skipped_commit_hashes=()
@@ -547,7 +556,7 @@ do_revert_reapply() {
     while [ $command_result -ne 0 ] && is_skippable; do
       todo=$(get_next_todo)
 
-      command_err="$(git "${git_config[@]}" $git_command_name --skip "${command_opts[@]}" 3>&1 2>&1 >/dev/null)"
+      command_err="$(git "${git_config[@]}" $git_command_name --skip "${command_opts[@]}" 2>&1 >/dev/null)"
       command_result=$?
 
       local todo_parts
@@ -555,6 +564,8 @@ do_revert_reapply() {
       skipped_commit_hashes+=($(resolve_revision ${todo_parts[1]}))
     done
   fi
+
+  close_temp_output $temp_output $temp_output_pid
 
   local numdone=$((${#commit_hashes[@]} - ${#skipped_commit_hashes[@]}))
 
