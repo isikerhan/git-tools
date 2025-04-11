@@ -15,11 +15,12 @@ _common_teardown_file() {
 }
 
 _common_setup() {
-  load "helpers/test-tags.bash"
+  export BATS_LIB_PATH=${BATS_LIB_PATH:-"/usr/lib"}
+  bats_load_library bats-support
+  bats_load_library bats-assert
+  bats_load_library bats-file
 
-  load "$BATS_HELPERS_DIR/bats-support/load.bash"
-  load "$BATS_HELPERS_DIR/bats-assert/load.bash"
-  load "$BATS_HELPERS_DIR/bats-file/load.bash"
+  load "helpers/test-tags.bash"
 
   if ! has_test_tag "no-repository"; then
     GIT_REPOSITORY_DIR="$BATS_TEST_TMPDIR/repo"
