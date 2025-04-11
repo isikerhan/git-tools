@@ -1,0 +1,46 @@
+name: Run tests
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: "Runner type"
+        type: string
+      git-version:
+        description: "Git version to use"
+        type: string
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Bats
+        id: setup-bats
+        uses: bats-core/bats-action@3.0.0
+        with:
+          bats-version: 1.11.1
+          detik-install: false
+      - name: Setup Git
+        uses: isikerhan/setup-git@v1
+        with:
+          git-version: ${{ inputs.git-version }}
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config --global user.name "Test Runner"
+          git config --global user.email "test.runner@example.com"
+          git config --global init.defaultBranch main
+      - name: Execute tests
+        shell: bash
+        run: |
+          if bats tests/; then
+            echo "✅ All tests passed successfully!"
+          else
+            echo "❌ Tests failed! Check the logs for details." >&2
+            exit 1
+          fi
+        env:
+          BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
+          BATS_TEST_TIMEOUT: ${{ runner.os == 'Windows' && 25 || 10 }}
