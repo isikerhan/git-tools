@@ -43,4 +43,4 @@ jobs:
           fi
         env:
           BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
-          BATS_TEST_TIMEOUT: 10
+          BATS_TEST_TIMEOUT: ${{ runner.os == 'Windows' && 25 || 10 }}
