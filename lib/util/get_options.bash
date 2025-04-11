@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Git Tools.  If not, see <https://www.gnu.org/licenses/>.
 
-if [ -n "$__LIB_UTIL_GET_OPTIONS__" ]; then
+if [[ -n "$__LIB_UTIL_GET_OPTIONS__" ]]; then
   return
 fi
 readonly __LIB_UTIL_GET_OPTIONS__=true
@@ -57,7 +57,7 @@ function get_options {
 
     if [[ -z "$opt_config" ]]; then
       eval "$opt_param=?"
-    elif [ "$opt_config" == "$OPTARG:" ] && [ -z "$value" ]; then
+    elif [[ "$opt_config" == "$OPTARG:" ]] && [[ -z "$value" ]]; then
       eval "$opt_param=:"
     else
       opt="$OPTARG"
@@ -68,21 +68,21 @@ function get_options {
   local opt_string_suffix=""
   local opt_string_prefix=""
 
-  if [ ! -z "$long_opts" ]; then
+  if [[ ! -z "$long_opts" ]]; then
     opt_string_suffix="-:"
   fi
 
-  if [ ! "${opt_string[0]}" == ":" ]; then
+  if [[ ! "${opt_string[0]}" == ":" ]]; then
     opt_string_prefix=":"
   fi
 
-  if [ "$OPTIND" -gt "${#optarr[@]}" ]; then
+  if [[ "$OPTIND" -gt "${#optarr[@]}" ]]; then
     return 1
   fi
 
   getopts "$opt_string_prefix$opt_string$opt_string_suffix" "$opt_param" "${optarr[@]}"
 
-  if [ "${!opt_param}" = "-" ]; then
+  if [[ "${!opt_param}" = "-" ]]; then
     parse_long_option "${optarr[@]}"
   fi
 }
