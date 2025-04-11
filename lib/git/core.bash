@@ -26,6 +26,7 @@ readonly __DIR_LIB_GIT_CORE__=$(dirname -- "${BASH_SOURCE[0]}")
 . "$__DIR_LIB_GIT_CORE__/config.bash"
 . "$__DIR_LIB_GIT_CORE__/revision.bash"
 . "$__DIR_LIB_GIT_CORE__/../core/error.bash"
+. "$__DIR_LIB_GIT_CORE__/../core/os.bash"
 
 # check if git command is available, fail with a fatal error if not
 # usage: check_git_command
@@ -198,6 +199,20 @@ find_git_editor() {
   fi
 
   echo "$DEFAULT_GIT_EDITOR"
+}
+
+# return current editor command with its stdout redirected to the given target
+# usage redirected_git_editor stdout_target
+redirected_git_editor() {
+  local stdout_target="$1"
+
+  local editor="$(find_git_editor)"
+
+  if is_open_fd "$stdout_target"; then
+    echo "bash -c \">&$stdout_target $editor \$1\""
+  else
+    echo "bash -c \">$stdout_target $editor \$1\""
+  fi
 }
 
 # check if a given revision is reachable from HEAD

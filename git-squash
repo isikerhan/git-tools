@@ -25,6 +25,7 @@ __DIR__=$(dirname -- "${BASH_SOURCE[0]}")
 
 . "$__DIR__/lib/core/error.bash"
 . "$__DIR__/lib/core/log.bash"
+. "$__DIR__/lib/core/os.bash"
 . "$__DIR__/lib/git/config.bash"
 . "$__DIR__/lib/git/core.bash"
 . "$__DIR__/lib/git/log.bash"
@@ -224,13 +225,19 @@ find_base_commit_hash() {
 commit() {
   local commit_opts=("$@")
 
-  local editor="$(find_git_editor)"
-  local git_config=(-c "core.editor=>&3 $editor")
+  local temp_output
+  local temp_output_pid
+  create_temp_output 1 temp_output temp_output_pid
+
+  local editor="$(redirected_git_editor "$temp_output")"
+  local git_config=(-c "core.editor=$editor")
 
   local commit_result
 
-  git "${git_config[@]}" commit "${commit_opts[@]}" 3>&1 >/dev/null
+  git "${git_config[@]}" commit "${commit_opts[@]}" >/dev/null
   commit_result=$?
+
+  close_temp_output $temp_output $temp_output_pid
 
   if [[ $commit_result -ne 0 ]]; then
     fatal "unable to commit" $RET_GENERIC_ERROR
