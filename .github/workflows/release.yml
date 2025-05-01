@@ -1,0 +1,33 @@
+name: Release
+on:
+  workflow_run:
+    workflows: 
+      - 'Run release tests'
+    types: 
+      - completed
+    branches: 
+      - 'v*'
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Pack artifacts
+        id: artifact
+        run: |
+          mkdir -p dist/git-tools
+          cp -r lib git-* dist/git-tools
+          cd dist
+          tar -czf git-tools-$VERSION.tar.gz git-tools
+        env:
+          VERSION: ${{ github.event.workflow_run.head_branch }}
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/git-tools-${{ github.event.workflow_run.head_branch }}.tar.gz
+          draft: true
+          prerelease: ${{ startsWith(github.event.workflow_run.head_branch, 'v0') }}
+          tag_name: ${{ github.event.workflow_run.head_branch }}
