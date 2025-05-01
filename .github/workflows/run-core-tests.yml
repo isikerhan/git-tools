@@ -1,5 +1,4 @@
 name: Run core tests
-description: Runs the tests on a limited set of OS and Git versions.
 on:
   workflow_dispatch:
   pull_request:
