@@ -1,5 +1,4 @@
 name: Run extended tests
-description: Runs the tests across multiple OS and Git versions.
 on:
   workflow_dispatch:
   push:
