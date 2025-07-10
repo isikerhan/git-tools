@@ -1,5 +1,8 @@
 # Git Tools :hammer_and_wrench:
 
+[![Run core tests](https://github.com/isikerhan/git-tools/actions/workflows/run-core-tests.yml/badge.svg)](https://github.com/isikerhan/git-tools/actions/workflows/run-core-tests.yml) 
+[![Run release tests](https://github.com/isikerhan/git-tools/actions/workflows/run-release-tests.yml/badge.svg)](https://github.com/isikerhan/git-tools/actions/workflows/run-release-tests.yml)
+
 A set of custom Git commands that might come in handy for certain tasks.
 
 ## Prerequisites
